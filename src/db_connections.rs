@@ -2,7 +2,7 @@ use std::env;
 
 use sqlx::{postgres::PgPoolOptions, Connection, Error, PgConnection, Pool, Postgres};
 
-use crate::{constants::DB_URL, DB_CONNECTIONS};
+use crate::constants::{DB_CONNECTIONS, DB_URL};
 
 pub async fn create_db_pool() -> Result<Pool<Postgres>, Error> {
     let db_connections = env::var(DB_CONNECTIONS).unwrap();

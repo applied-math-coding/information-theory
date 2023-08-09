@@ -1,5 +1,5 @@
 use constants::DB_CONNECTIONS;
-use data_utils::normalize_data;
+use data_utils::{fetch_ticker_data, normalize_data};
 use db_connections::create_db_pool;
 use dotenv::dotenv;
 use futures::{Stream, TryStreamExt};
@@ -15,5 +15,7 @@ async fn main() -> Result<()> {
     let pool = create_db_pool().await?;
     sqlx::migrate!("db/migrations").run(&pool).await?;
     // normalize_data(&pool).await?;
+    let data = fetch_ticker_data(&pool, "^NSEI", "^IXIC").await?;
+    println!("{:?}", fetch_ticker_data(&pool, "^NSEI", "^IXIC").await?);
     Ok(())
 }
