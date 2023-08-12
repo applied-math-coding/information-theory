@@ -25,21 +25,21 @@ pub fn combine_data() -> Result<()> {
     Ok(())
 }
 
-pub async fn fetch_ticker_data(
+pub async fn fetch_ticker_data_scatter(
     executer: impl PgExecutor<'_>,
     ticker1: &str,
     ticker2: &str,
 ) -> sqlx::Result<(Vec<f32>, Vec<f32>)> {
     let rows = sqlx::query(
         r#"
-    select
+    SELECT
       sp1.close_normalized,
       sp2.close_normalized
-    from stock_prices sp1, stock_prices sp2
-    where sp1."date" = sp2."date"
-      and sp1.ticker = $1
-      and sp2.ticker = $2
-    order by sp1."date" asc
+    FROM stock_prices sp1, stock_prices sp2
+    WHERE sp1."date" = sp2."date"
+      AND sp1.ticker = $1
+      AND sp2.ticker = $2
+    ORDER BY sp1."date" ASC
   "#,
     )
     .bind(ticker1)
@@ -62,15 +62,15 @@ pub async fn normalize_data(pool: &Pool<Postgres>) -> sqlx::Result<()> {
         let mut txn = pool.begin().await?;
         sqlx::query(
             r#"
-          with "ranges" as (
-            select max(sp."close") - min(sp."close") as "range",
-            min(sp."close") as min_close
-            from stock_prices sp
-            where sp.ticker = $1
+          WITH "ranges" AS (
+            SELECT MAX(sp."close") - MIN(sp."close") AS "range",
+              MIN(sp."close") AS min_close
+            FROM stock_prices sp
+            WHERE sp.ticker = $1
           )
-          update stock_prices as sp set ("close_normalized") =
-              (select (sp."close" - r.min_close) / r."range" from ranges r)
-          where sp.ticker = $1"#,
+          UPDATE stock_prices AS sp SET ("close_normalized") =
+              (SELECT (sp."close" - r.min_close) / r."range" FROM ranges r)
+          WHERE sp.ticker = $1"#,
         )
         .bind(ticker_name)
         .execute(&mut txn)

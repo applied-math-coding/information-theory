@@ -1,21 +1,24 @@
-use constants::DB_CONNECTIONS;
-use data_utils::{fetch_ticker_data, normalize_data};
-use db_connections::create_db_pool;
-use dotenv::dotenv;
-use futures::{Stream, TryStreamExt};
-use sqlx::{Result, Row};
+use actix_web::{web, App, HttpServer};
+use api::{ticker_data::get_ticker_data, AppState};
+mod api;
 mod constants;
 mod data_utils;
 mod db_connections;
+mod repo;
 
 #[tokio::main]
-async fn main() -> Result<()> {
+async fn main() -> Result<(), String> {
     // data_utils::combine_data()?;
-    dotenv().ok();
-    let pool = create_db_pool().await?;
-    sqlx::migrate!("db/migrations").run(&pool).await?;
-    // normalize_data(&pool).await?;
-    let data = fetch_ticker_data(&pool, "^NSEI", "^IXIC").await?;
-    println!("{:?}", fetch_ticker_data(&pool, "^NSEI", "^IXIC").await?);
+    let app_state = AppState::init().await?;
+    HttpServer::new(move || {
+        App::new()
+            .app_data(web::Data::new(app_state.clone()))
+            .service(web::scope("/api").service(get_ticker_data))
+    })
+    .bind(("127.0.0.1", 8080))
+    .map_err(|e| format!("{e}"))?
+    .run()
+    .await
+    .map_err(|e| format!("{e}"))?;
     Ok(())
 }

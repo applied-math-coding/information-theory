@@ -1,12 +1,12 @@
 [package]
-name = "information-theory"
+name = "information_theory"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
 name = "information_theory"
-crate-type = ["cdylib"]
+# crate-type = ["cdylib"] necessary when building for pyo3
 
 [dependencies]
 dotenv = "0.15.0"
@@ -15,3 +15,7 @@ sqlx = { version = "0.6.3", features = ["runtime-tokio-rustls", "postgres", "mac
 tokio = { version = "1", features = ["full"] }
 pyo3 = { version = "0.19", features = ["extension-module"] }
 pyo3-asyncio = { version = "0.19", features = ["attributes", "tokio-runtime"] }
+actix-web = { version = "4" }
+serde = { version = "1.0", features = ["derive"] }
+log = "0.4.19"
+env_logger = "0.10.0"
